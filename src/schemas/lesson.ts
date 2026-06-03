@@ -14,6 +14,10 @@ const lessonDateOrderGuard = <T extends { startAt: string; endAt: string }>(valu
   new Date(value.startAt).getTime() < new Date(value.endAt).getTime();
 
 export const lessonStatusSchema = z.enum(['scheduled', 'completed', 'cancelled']);
+export const lessonRecurrenceSchema = z.object({
+  frequency: z.literal('weekly'),
+  until: utcDateTimeSchema
+});
 
 export const lessonWarningCodeSchema = z.enum(['schedule_overlap']);
 
@@ -31,7 +35,8 @@ export const createLessonInputSchema = z
     endAt: utcDateTimeSchema,
     capacity: z.number().int().min(1),
     studentIds: z.array(idSchema).default([]),
-    notes: optionalTrimmedStringSchema
+    notes: optionalTrimmedStringSchema,
+    recurrence: lessonRecurrenceSchema.optional()
   })
   .superRefine((value, ctx) => {
     if (!lessonDateOrderGuard(value)) {
@@ -49,6 +54,14 @@ export const createLessonInputSchema = z
         path: ['studentIds']
       });
     }
+
+    if (value.recurrence && new Date(value.recurrence.until).getTime() < new Date(value.startAt).getTime()) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'recurrence.until must be on or after startAt.',
+        path: ['recurrence', 'until']
+      });
+    }
   });
 
 export const updateLessonInputSchema = updatePayloadGuard({
@@ -57,6 +70,7 @@ export const updateLessonInputSchema = updatePayloadGuard({
   startAt: utcDateTimeSchema,
   endAt: utcDateTimeSchema,
   capacity: z.number().int().min(1),
+  studentIds: z.array(idSchema),
   notes: nonEmptyTrimmedStringSchema,
   status: lessonStatusSchema
 }).superRefine((value, ctx) => {
@@ -67,11 +81,24 @@ export const updateLessonInputSchema = updatePayloadGuard({
       path: ['startAt']
     });
   }
+
+  if (
+    value.studentIds &&
+    value.capacity !== undefined &&
+    value.studentIds.length > value.capacity
+  ) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: 'studentIds cannot exceed capacity.',
+      path: ['studentIds']
+    });
+  }
 });
 
 export const lessonSchema = entityBaseSchema.extend({
   entityType: z.literal('lesson'),
   lessonId: idSchema,
+  recurringSeriesId: idSchema.optional(),
   title: nonEmptyTrimmedStringSchema,
   sport: sportSchema,
   startAt: utcDateTimeSchema,
@@ -84,14 +111,15 @@ export const lessonSchema = entityBaseSchema.extend({
 
 export const lessonOperationResultSchema = z.object({
   lesson: lessonSchema,
+  affectedLessons: z.array(lessonSchema).default([]),
   warnings: z.array(lessonWarningSchema).default([])
 });
 
 export type LessonStatus = z.infer<typeof lessonStatusSchema>;
 export type LessonWarningCode = z.infer<typeof lessonWarningCodeSchema>;
 export type LessonWarning = z.infer<typeof lessonWarningSchema>;
+export type LessonRecurrence = z.infer<typeof lessonRecurrenceSchema>;
 export type CreateLessonInput = z.infer<typeof createLessonInputSchema>;
 export type UpdateLessonInput = z.infer<typeof updateLessonInputSchema>;
 export type Lesson = z.infer<typeof lessonSchema>;
 export type LessonOperationResult = z.infer<typeof lessonOperationResultSchema>;
-

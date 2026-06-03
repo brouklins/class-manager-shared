@@ -15,7 +15,8 @@ export const createStudentInputSchema = z.object({
   name: nonEmptyTrimmedStringSchema,
   email: z.string().trim().email().optional(),
   phone: optionalTrimmedStringSchema,
-  startedAt: utcDateTimeSchema.optional()
+  startedAt: utcDateTimeSchema.optional(),
+  lastPaymentAt: utcDateTimeSchema.optional()
 });
 
 export const updateStudentInputSchema = updatePayloadGuard({
@@ -23,6 +24,7 @@ export const updateStudentInputSchema = updatePayloadGuard({
   email: z.string().trim().email(),
   phone: nonEmptyTrimmedStringSchema,
   startedAt: utcDateTimeSchema,
+  lastPaymentAt: utcDateTimeSchema,
   status: studentStatusSchema
 });
 
@@ -33,11 +35,11 @@ export const studentSchema = entityBaseSchema.extend({
   email: z.string().trim().email().optional(),
   phone: optionalTrimmedStringSchema,
   status: studentStatusSchema,
-  startedAt: utcDateTimeSchema
+  startedAt: utcDateTimeSchema,
+  lastPaymentAt: utcDateTimeSchema
 });
 
 export type StudentStatus = z.infer<typeof studentStatusSchema>;
 export type CreateStudentInput = z.infer<typeof createStudentInputSchema>;
 export type UpdateStudentInput = z.infer<typeof updateStudentInputSchema>;
 export type Student = z.infer<typeof studentSchema>;
-

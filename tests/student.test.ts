@@ -39,11 +39,19 @@ describe('student schemas', () => {
       name: 'Maria Silva',
       status: 'active',
       startedAt: '2026-06-02T12:00:00.000Z',
+      lastPaymentAt: '2026-06-02T12:00:00.000Z',
       createdAt: '2026-06-02T12:00:00.000Z',
       updatedAt: '2026-06-02T12:00:00.000Z'
     });
 
     expect(result.studentId).toBe('stu_123');
   });
-});
 
+  it('accepts payment date updates', () => {
+    const result = updateStudentInputSchema.parse({
+      lastPaymentAt: '2026-06-15T00:00:00.000Z'
+    });
+
+    expect(result.lastPaymentAt).toBe('2026-06-15T00:00:00.000Z');
+  });
+});

@@ -31,6 +31,7 @@ describe('api schemas', () => {
           name: 'Maria Silva',
           status: 'active',
           startedAt: '2026-06-02T12:00:00.000Z',
+          lastPaymentAt: '2026-06-02T12:00:00.000Z',
           createdAt: '2026-06-02T12:00:00.000Z',
           updatedAt: '2026-06-02T12:00:00.000Z'
         }

@@ -20,6 +20,23 @@ describe('lesson schemas', () => {
     expect(result.capacity).toBe(4);
   });
 
+  it('accepts a recurring weekly lesson payload', () => {
+    const result = createLessonInputSchema.parse({
+      title: 'Turma segunda',
+      sport: 'beach_tennis',
+      startAt: '2026-06-02T12:00:00.000Z',
+      endAt: '2026-06-02T13:00:00.000Z',
+      capacity: 4,
+      studentIds: ['stu_1', 'stu_2'],
+      recurrence: {
+        frequency: 'weekly',
+        until: '2026-07-31T23:59:59.999Z'
+      }
+    });
+
+    expect(result.recurrence?.frequency).toBe('weekly');
+  });
+
   it('rejects lessons with invalid date ordering', () => {
     const result = createLessonInputSchema.safeParse({
       title: 'Aula turma manhã',
@@ -51,9 +68,11 @@ describe('lesson schemas', () => {
         capacity: 4,
         studentIds: [],
         status: 'scheduled',
+        recurringSeriesId: 'rec_123',
         createdAt: '2026-06-02T12:00:00.000Z',
         updatedAt: '2026-06-02T12:00:00.000Z'
       },
+      affectedLessons: [],
       warnings: [
         {
           code: 'schedule_overlap',
@@ -66,4 +85,3 @@ describe('lesson schemas', () => {
     expect(result.warnings).toHaveLength(1);
   });
 });
-
